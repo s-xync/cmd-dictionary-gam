@@ -27,7 +27,7 @@ const axiosRequest = async url => {
   }
 };
 
-const wordDefinitions = async word => {
+const wordDefinitions = async (word, returnData = false) => {
   const { response, err } = await axiosRequest(
     `${apiBaseURL}/word/${word}/definitions`
   );
@@ -40,8 +40,15 @@ const wordDefinitions = async word => {
   const definitionsData = response.data;
 
   if (definitionsData.length === 0) {
+    if (returnData) {
+      return [];
+    }
     console.log(`The are no definitions for the word "${word}".`);
     return;
+  }
+
+  if (returnData) {
+    return definitionsData.map(data => data.text);
   }
 
   console.log(`The definitions for the word "${word}" are...`);
@@ -51,7 +58,7 @@ const wordDefinitions = async word => {
   return;
 };
 
-const wordSynonyms = async word => {
+const wordSynonyms = async (word, returnData = false) => {
   const { response, err } = await axiosRequest(
     `${apiBaseURL}/word/${word}/relatedWords`
   );
@@ -70,8 +77,15 @@ const wordSynonyms = async word => {
     (wordSynonyms && !wordSynonyms.words) ||
     (wordSynonyms && wordSynonyms.words && wordSynonyms.length === 0)
   ) {
+    if (returnData) {
+      return [];
+    }
     console.log(`The are no synonyms for the word "${word}".`);
     return;
+  }
+
+  if (returnData) {
+    return wordSynonyms.words;
   }
 
   console.log(`The synonyms for the word "${word}" are...`);
@@ -81,7 +95,7 @@ const wordSynonyms = async word => {
   return;
 };
 
-const wordAntonyms = async word => {
+const wordAntonyms = async (word, returnData = false) => {
   const { response, err } = await axiosRequest(
     `${apiBaseURL}/word/${word}/relatedWords`
   );
@@ -100,8 +114,15 @@ const wordAntonyms = async word => {
     (wordAntonyms && !wordAntonyms.words) ||
     (wordAntonyms && wordAntonyms.words && wordAntonyms.length === 0)
   ) {
+    if (returnData) {
+      return [];
+    }
     console.log(`The are no antonyms for the word "${word}".`);
     return;
+  }
+
+  if (returnData) {
+    return wordAntonyms.words;
   }
 
   console.log(`The antonyms for the word "${word}" are...`);
@@ -159,15 +180,38 @@ const getRandomWord = async () => {
   return response.data.word;
 };
 
+const jumbleWord = word => {
+  /**
+   * https://stackoverflow.com/a/3943985/5512145
+   */
+  const wordSplit = word.split(""),
+    n = wordSplit.length;
+
+  for (var i = n - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = wordSplit[i];
+    wordSplit[i] = wordSplit[j];
+    wordSplit[j] = tmp;
+  }
+
+  return wordSplit.join("");
+};
+
 const dictionaryGame = async word => {
-  console.log("dictionary game");
+  const definitions = await wordDefinitions(word, true);
+  const synonyms = await wordSynonyms(word, true);
+  const antonyms = await wordAntonyms(word, true);
+  console.log(definitions);
+  console.log(synonyms);
+  console.log(antonyms);
+  console.log(word, jumbleWord(word));
 };
 
 const main = async (args = []) => {
   if (args.length === 0) {
     // ⚡ word of the day with full details ⚡
     const randomWord = await getRandomWord();
-    console.log(`The word of the day is "${randomWord}".`);
+    console.log(`The word of the day is "${randomWord}".\n`);
     await wordFullDetails(randomWord);
     return;
   }
