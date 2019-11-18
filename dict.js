@@ -82,7 +82,33 @@ const wordSynonyms = async word => {
 };
 
 const wordAntonyms = async word => {
-  console.log("word antonyms");
+  const { response, err } = await axiosRequest(
+    `${apiBaseURL}/word/${word}/relatedWords`
+  );
+
+  if (err) {
+    console.log(err);
+    return;
+  }
+
+  const wordAntonyms = response.data.find(
+    data => data.relationshipType === "antonym"
+  );
+
+  if (
+    !wordAntonyms ||
+    (wordAntonyms && !wordAntonyms.words) ||
+    (wordAntonyms && wordAntonyms.words && wordAntonyms.length === 0)
+  ) {
+    console.log(`The are no antonyms for the word "${word}".`);
+    return;
+  }
+
+  console.log(`The antonyms for the word "${word}" are...`);
+  wordAntonyms.words.forEach((data, index) => {
+    console.log(`${index + 1}. ${data}`);
+  });
+  return;
 };
 
 const wordExamples = async word => {
