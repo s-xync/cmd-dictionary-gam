@@ -182,7 +182,7 @@ const getRandomWord = async () => {
 };
 
 const findRandomNumber = exclusiveUpperLimit =>
-  Math.floor(Math.random() * exclusiveUpperLimit);
+  Math.floor(Math.random() * Math.floor(exclusiveUpperLimit));
 
 const jumbleWord = word => {
   /**
@@ -216,7 +216,15 @@ const hintSynonym = (synonyms = []) => {
 
 const hintAntonym = (antonyms = []) => {
   const antonym = antonyms[findRandomNumber(antonyms.length)];
-  return { antonym, string: `A synonym for this word is... ${antonym}` };
+  return { antonym, string: `An antonym for this word is... ${antonym}` };
+};
+
+const hintJumbledWord = word => {
+  const jumbledWord = jumbleWord(word);
+  return {
+    jumbledWord,
+    string: `A jumbled word for this word is... ${jumbledWord}`
+  };
 };
 
 const checkWord = (inputWord, word, synonyms = []) => {
@@ -246,9 +254,6 @@ const dictionaryGame = async word => {
   let playerWon = false;
   let playerQuit = false;
 
-  // todo: remove the below console statement
-  console.log("word", word);
-
   let hint;
 
   hint = hintDefinition(definitions);
@@ -265,6 +270,7 @@ const dictionaryGame = async word => {
       inputWord.trim(),
       word,
       _.difference(synonyms, usedSynonyms)
+      // _.difference(synonyms, []) // ❗ Use this if you want to enter the synonym that you see ❗
     );
 
     if (!playerWon) {
@@ -284,8 +290,30 @@ const dictionaryGame = async word => {
           optionSelected = true;
         } else if (inputOption === "2") {
           optionSelected = true;
-          // todo: show random hint
-          console.log("hint is shown here");
+          /**
+           * 0 --> definition
+           * 1 --> synonym
+           * 2 --> jumbled word
+           * 3 --> antonym
+           */
+          console.log("HINT:");
+          const hintChoice = antonymsUsable
+            ? findRandomNumber(4)
+            : findRandomNumber(3);
+          if (hintChoice === 0) {
+            hint = hintDefinition(definitions);
+            console.log(hint.string);
+          } else if (hintChoice === 1) {
+            hint = hintSynonym(synonyms);
+            usedSynonyms.push(hint.synonym);
+            console.log(hint.string);
+          } else if (hintChoice === 2) {
+            hint = hintJumbledWord(word);
+            console.log(hint.string);
+          } else {
+            hint = hintAntonym(antonyms);
+            console.log(hint.string);
+          }
         } else if (inputOption === "3") {
           optionSelected = true;
           playerQuit = true;
