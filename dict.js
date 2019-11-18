@@ -11,7 +11,7 @@ const axiosRequest = async url => {
     const response = await axios.get(url, {
       params: { api_key }
     });
-    return { response: response.data };
+    return { response };
   } catch (err) {
     if (err.response.status === 400) {
       return { err: "Word not available." };
@@ -30,8 +30,15 @@ const wordDefinitions = async word => {
     return;
   }
 
+  const definitionsData = response.data;
+
+  if (definitionsData.length === 0) {
+    console.log(`The are no definitions for the word "${word}".`);
+    return;
+  }
+
   console.log(`The definitions for the word "${word}" are...`);
-  response.forEach((definition, index) => {
+  definitionsData.forEach((definition, index) => {
     console.log(`${index + 1}. ${definition.text}`);
   });
   return;
@@ -46,7 +53,27 @@ const wordAntonyms = async word => {
 };
 
 const wordExamples = async word => {
-  console.log("word examples");
+  const { response, err } = await axiosRequest(
+    `${apiBaseURL}/word/${word}/examples`
+  );
+
+  if (err) {
+    console.log(err);
+    return;
+  }
+
+  const examplesData = response.data.examples;
+
+  if (examplesData.length === 0) {
+    console.log(`The are no examples for the word "${word}".`);
+    return;
+  }
+
+  console.log(`The examples for the word "${word}" are...`);
+  examplesData.forEach((definition, index) => {
+    console.log(`${index + 1}. ${definition.text}`);
+  });
+  return;
 };
 
 const wordFullDetails = async word => {
