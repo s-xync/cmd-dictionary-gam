@@ -3,10 +3,38 @@ const axios = require("axios");
 /**
  * 🔥 Please create a .env file with the API_KEY 🔥
  */
-const API_KEY = process.env.API_KEY;
+const apiBaseURL = process.env.API_BASE_URL;
+const api_key = process.env.API_KEY;
+
+const axiosRequest = async url => {
+  try {
+    const response = await axios.get(url, {
+      params: { api_key }
+    });
+    return { response: response.data };
+  } catch (err) {
+    if (err.response.status === 400) {
+      return { err: "Word not available." };
+    }
+    return { err: "Server error." };
+  }
+};
 
 const wordDefinitions = async word => {
-  console.log("word definitions");
+  const { response, err } = await axiosRequest(
+    `${apiBaseURL}/word/${word}/definitions`
+  );
+
+  if (err) {
+    console.log(err);
+    return;
+  }
+
+  console.log(`The definitions for the word "${word}" are...`);
+  response.forEach((definition, index) => {
+    console.log(`${index + 1}. ${definition.text}`);
+  });
+  return;
 };
 
 const wordSynonyms = async word => {
@@ -26,6 +54,7 @@ const wordFullDetails = async word => {
   await wordSynonyms(word);
   await wordAntonyms(word);
   await wordExamples(word);
+  return;
 };
 
 const getRandomWord = async () => {
@@ -41,7 +70,7 @@ const main = async (args = []) => {
   if (args.length === 0) {
     // ⚡ word of the day with full details ⚡
     const randomWord = await getRandomWord();
-    console.log(`The word of the day is ${randomWord}.`);
+    console.log(`The word of the day is "${randomWord}".`);
     await wordFullDetails(randomWord);
     return;
   }
@@ -79,7 +108,7 @@ const main = async (args = []) => {
         return;
       default:
         // ⚡ invalid command ⚡
-        console.log(`${args[0]} is an invalid command.`);
+        console.log(`"${args[0]}" is an invalid command.`);
         return;
     }
   }
