@@ -1,5 +1,7 @@
 require("dotenv").config();
 const axios = require("axios");
+const _ = require("lodash");
+
 /**
  * 🔥 Please create a .env file with the API_KEY 🔥
  */
@@ -13,7 +15,12 @@ const axiosRequest = async url => {
     });
     return { response };
   } catch (err) {
-    if (err.response.status === 400) {
+    if (
+      err.response &&
+      err.response.status === 400 &&
+      err.response.data &&
+      err.response.data.error === "word not found"
+    ) {
       return { err: "Word not available." };
     }
     return { err: "Server error." };
@@ -38,14 +45,40 @@ const wordDefinitions = async word => {
   }
 
   console.log(`The definitions for the word "${word}" are...`);
-  definitionsData.forEach((definition, index) => {
-    console.log(`${index + 1}. ${definition.text}`);
+  definitionsData.forEach((data, index) => {
+    console.log(`${index + 1}. ${data.text}`);
   });
   return;
 };
 
 const wordSynonyms = async word => {
-  console.log("word synonyms");
+  const { response, err } = await axiosRequest(
+    `${apiBaseURL}/word/${word}/relatedWords`
+  );
+
+  if (err) {
+    console.log(err);
+    return;
+  }
+
+  const wordSynonyms = response.data.find(
+    data => data.relationshipType === "synonym"
+  );
+
+  if (
+    !wordSynonyms ||
+    (wordSynonyms && !wordSynonyms.words) ||
+    (wordSynonyms && wordSynonyms.words && wordSynonyms.length === 0)
+  ) {
+    console.log(`The are no synonyms for the word "${word}".`);
+    return;
+  }
+
+  console.log(`The synonyms for the word "${word}" are...`);
+  wordSynonyms.words.forEach((data, index) => {
+    console.log(`${index + 1}. ${data}`);
+  });
+  return;
 };
 
 const wordAntonyms = async word => {
@@ -70,8 +103,8 @@ const wordExamples = async word => {
   }
 
   console.log(`The examples for the word "${word}" are...`);
-  examplesData.forEach((definition, index) => {
-    console.log(`${index + 1}. ${definition.text}`);
+  examplesData.forEach((data, index) => {
+    console.log(`${index + 1}. ${data.text}`);
   });
   return;
 };
