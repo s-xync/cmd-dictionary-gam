@@ -1,6 +1,7 @@
 require("dotenv").config();
 const axios = require("axios");
 const _ = require("lodash");
+const readlineSync = require("readline-sync");
 
 /**
  * 🔥 Please create a .env file with the API_KEY 🔥
@@ -180,6 +181,9 @@ const getRandomWord = async () => {
   return response.data.word;
 };
 
+const findRandomNumber = exclusiveUpperLimit =>
+  Math.floor(Math.random() * exclusiveUpperLimit);
+
 const jumbleWord = word => {
   /**
    * https://stackoverflow.com/a/3943985/5512145
@@ -188,7 +192,7 @@ const jumbleWord = word => {
     n = wordSplit.length;
 
   for (var i = n - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
+    var j = findRandomNumber(i + 1);
     var tmp = wordSplit[i];
     wordSplit[i] = wordSplit[j];
     wordSplit[j] = tmp;
@@ -197,14 +201,113 @@ const jumbleWord = word => {
   return wordSplit.join("");
 };
 
+const hintDefinition = (definitions = []) => {
+  const definition = definitions[findRandomNumber(definitions.length)];
+  return {
+    definition,
+    string: `A definition for this word is... ${definition}`
+  };
+};
+
+const hintSynonym = (synonyms = []) => {
+  const synonym = synonyms[findRandomNumber(synonyms.length)];
+  return { synonym, string: `A synonym for this word is... ${synonym}` };
+};
+
+const hintAntonym = (antonyms = []) => {
+  const antonym = antonyms[findRandomNumber(antonyms.length)];
+  return { antonym, string: `A synonym for this word is... ${antonym}` };
+};
+
+const checkWord = (inputWord, word, synonyms = []) => {
+  if (inputWord === word) {
+    return true;
+  }
+
+  if (synonyms.includes(inputWord)) {
+    return true;
+  }
+
+  return false;
+};
+
 const dictionaryGame = async word => {
   const definitions = await wordDefinitions(word, true);
   const synonyms = await wordSynonyms(word, true);
   const antonyms = await wordAntonyms(word, true);
-  console.log(definitions);
-  console.log(synonyms);
-  console.log(antonyms);
-  console.log(word, jumbleWord(word));
+
+  const usedSynonyms = [];
+
+  let antonymsUsable = true;
+  if (antonyms.length === 0) {
+    antonymsUsable = false;
+  }
+
+  let playerWon = false;
+  let playerQuit = false;
+
+  // todo: remove the below console statement
+  console.log("word", word);
+
+  let hint;
+
+  hint = hintDefinition(definitions);
+  console.log(hint.string);
+
+  hint = hintSynonym(synonyms);
+  usedSynonyms.push(hint.synonym);
+  console.log(hint.string);
+
+  while (!playerWon && !playerQuit) {
+    const inputWord = readlineSync.question("\nWhat is your guess?\n");
+
+    playerWon = checkWord(
+      inputWord.trim(),
+      word,
+      _.difference(synonyms, usedSynonyms)
+    );
+
+    if (!playerWon) {
+      console.log("Your guess is wrong. ❌");
+      let optionSelected = false;
+      while (!optionSelected) {
+        console.log(
+          "\nPlease select one of the following options.(input 1 or 2 or 3)"
+        );
+        console.log("1. Try again");
+        console.log("2. Hint");
+        console.log("3. Quit");
+        const inputOption = readlineSync.question(
+          "\nWhat do you want to choose?\n"
+        );
+        if (inputOption === "1") {
+          optionSelected = true;
+        } else if (inputOption === "2") {
+          optionSelected = true;
+          // todo: show random hint
+          console.log("hint is shown here");
+        } else if (inputOption === "3") {
+          optionSelected = true;
+          playerQuit = true;
+        } else {
+          console.log("Invalid option selected.");
+        }
+      }
+    }
+  }
+
+  if (playerWon) {
+    console.log("You've guessed the correct word. 🎉🎉");
+    return;
+  }
+
+  if (playerQuit) {
+    console.log(`The correct word is "${word}".\n`);
+    await wordFullDetails(word);
+    return;
+  }
+
+  return;
 };
 
 const main = async (args = []) => {
