@@ -137,15 +137,26 @@ const wordExamples = async word => {
 
 const wordFullDetails = async word => {
   await wordDefinitions(word);
+  console.log();
   await wordSynonyms(word);
+  console.log();
   await wordAntonyms(word);
+  console.log();
   await wordExamples(word);
   return;
 };
 
 const getRandomWord = async () => {
-  console.log("get random word");
-  return "word";
+  const { response, err } = await axiosRequest(
+    `${apiBaseURL}/words/randomWord`
+  );
+
+  if (err) {
+    console.log(err);
+    return;
+  }
+
+  return response.data.word;
 };
 
 const dictionaryGame = async word => {
@@ -170,7 +181,7 @@ const main = async (args = []) => {
     }
 
     // ⚡ full details of given word ⚡
-    await wordFullDetails(args[1]);
+    await wordFullDetails(args[0]);
     return;
   }
 
