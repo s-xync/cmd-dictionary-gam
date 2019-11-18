@@ -270,7 +270,7 @@ const dictionaryGame = async word => {
       inputWord.trim(),
       word,
       _.difference(synonyms, usedSynonyms)
-      // _.difference(synonyms, []) // ❗ Use this if you want to enter the synonym that you see ❗
+      // _.difference(synonyms, []) // ❗player to win for the synonyms already shown as hints ❗
     );
 
     if (!playerWon) {
