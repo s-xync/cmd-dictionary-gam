@@ -4,7 +4,7 @@ const _ = require("lodash");
 const readlineSync = require("readline-sync");
 
 /**
- * 🔥 Please create a .env file with the API_KEY 🔥
+ * 🔥 Please create a .env file with the API_KEY & API_BASE_URL 🔥
  */
 const apiBaseURL = process.env.API_BASE_URL;
 const api_key = process.env.API_KEY;
@@ -69,14 +69,14 @@ const wordSynonyms = async (word, returnData = false) => {
     return;
   }
 
-  const wordSynonyms = response.data.find(
+  const synonymsData = response.data.find(
     data => data.relationshipType === "synonym"
   );
 
   if (
-    !wordSynonyms ||
-    (wordSynonyms && !wordSynonyms.words) ||
-    (wordSynonyms && wordSynonyms.words && wordSynonyms.length === 0)
+    !synonymsData ||
+    (synonymsData && !synonymsData.words) ||
+    (synonymsData && synonymsData.words && synonymsData.length === 0)
   ) {
     if (returnData) {
       return [];
@@ -86,11 +86,11 @@ const wordSynonyms = async (word, returnData = false) => {
   }
 
   if (returnData) {
-    return wordSynonyms.words;
+    return synonymsData.words;
   }
 
   console.log(`The synonyms for the word "${word}" are...`);
-  wordSynonyms.words.forEach((data, index) => {
+  synonymsData.words.forEach((data, index) => {
     console.log(`${index + 1}. ${data}`);
   });
   return;
@@ -106,14 +106,14 @@ const wordAntonyms = async (word, returnData = false) => {
     return;
   }
 
-  const wordAntonyms = response.data.find(
+  const antonymsData = response.data.find(
     data => data.relationshipType === "antonym"
   );
 
   if (
-    !wordAntonyms ||
-    (wordAntonyms && !wordAntonyms.words) ||
-    (wordAntonyms && wordAntonyms.words && wordAntonyms.length === 0)
+    !antonymsData ||
+    (antonymsData && !antonymsData.words) ||
+    (antonymsData && antonymsData.words && antonymsData.length === 0)
   ) {
     if (returnData) {
       return [];
@@ -123,11 +123,11 @@ const wordAntonyms = async (word, returnData = false) => {
   }
 
   if (returnData) {
-    return wordAntonyms.words;
+    return antonymsData.words;
   }
 
   console.log(`The antonyms for the word "${word}" are...`);
-  wordAntonyms.words.forEach((data, index) => {
+  antonymsData.words.forEach((data, index) => {
     console.log(`${index + 1}. ${data}`);
   });
   return;
